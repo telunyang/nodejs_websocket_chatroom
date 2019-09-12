@@ -1,6 +1,4 @@
 # nodejs-websocket-chatroom
-Using WebSocket, Express packages to build a simple real-time web chatroom.
-
 In general, you can lauch this service directly after pulling this respository and installing packages.
 
 If you have owned an existing express server, You might as well refer to instructions as follows: 
