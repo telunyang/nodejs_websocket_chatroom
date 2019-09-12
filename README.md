@@ -29,7 +29,7 @@ $ node client.js
 4. Hint: You have to _launch server.js_ **before** you launch the client.js.
 
 ## 3. Place chat.ejs file in views folder
-Copy or move chat.ejs file to views folder if you have owned an existing express service.
+Copy&paste/move chat.ejs file to views folder.
 
 ## 4. Modify "routes/index.js"
 Replace rendering page name "index" to "chat".
