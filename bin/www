@@ -1,0 +1,123 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+
+var app = require('../app');
+var debug = require('debug')('nodejs-websocket-chatroom:server');
+var http = require('http');
+const WebSocket = require('ws');
+
+/**
+ * Get port from environment and store in Express.
+ */
+
+var port = normalizePort(process.env.PORT || '5566');
+app.set('port', port);
+
+/**
+ * Create HTTP server.
+ */
+
+var server = http.createServer(app);
+
+/**
+ * 自訂 web socket server
+ */
+const wss = new WebSocket.Server({server: server});
+
+//伺服器傳送資料用的物件
+let objServer = {name: 'SERVER', msg: null};
+
+wss.on('connection', (ws) => {
+    //始初訊息
+    objServer.msg = '聊天室已開啟!!';
+    ws.send( JSON.stringify(objServer) );
+
+    //接收訊息的事件
+    ws.on('message', function (obj) {
+        //將字串轉為物件來存取屬性
+        obj = JSON.parse(obj);
+        console.log('%s 說: %s', obj.name, obj.msg);
+
+        //廣播資訊給線上所有人
+        wss.clients.forEach((client) => {
+            // if(client !== ws && client.readyState === WebSocket.OPEN) { //只廣播給其他人，不傳給自己
+            if (client.readyState === WebSocket.OPEN) { //廣播給自己和其他人
+            client.send( JSON.stringify(obj) );
+            }
+        });
+    });
+});
+
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+server.listen(port);
+console.log(`Listening to port ${port}`);
+
+server.on('error', onError);
+server.on('listening', onListening);
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}
