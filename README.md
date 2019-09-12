@@ -1,6 +1,10 @@
 # nodejs-websocket-chatroom
 Using WebSocket, Express packages to build a simple real-time web chatroom.
 
+In general, you can lauch this service directly after pulling this respository and installing packages.
+
+If you have owned an existing express server, You might as well refer to instruments as follows: 
+
 ## 1. Installation
 - Install packages from package.json
 ```sh
@@ -48,9 +52,49 @@ router.get('/', function(req, res, next) {
 wss = new WebSocket('ws://{domain-name}:5566');
 ```
 
-## 6. Enjoy it!
+## 6. Modify bin/www
+1. Add package requirement
+```
+const WebSocket = require('ws');
+```
+2. Add code for server side
+```
+/**
+ * 自訂 web socket server
+ */
+const wss = new WebSocket.Server({server: server});
 
-## 7. Demo
+//伺服器傳送資料用的物件
+let objServer = {name: 'SERVER', msg: null};
+
+wss.on('connection', (ws) => {
+    //始初訊息
+    objServer.msg = '聊天室已開啟!!';
+    ws.send( JSON.stringify(objServer) );
+
+    //接收訊息的事件
+    ws.on('message', function (obj) {
+        //將字串轉為物件來存取屬性
+        obj = JSON.parse(obj);
+        console.log('%s 說: %s', obj.name, obj.msg);
+
+        //廣播資訊給線上所有人
+        wss.clients.forEach((client) => {
+            // if(client !== ws && client.readyState === WebSocket.OPEN) { //只廣播給其他人，不傳給自己
+            if (client.readyState === WebSocket.OPEN) { //廣播給自己和其他人
+            client.send( JSON.stringify(obj) );
+            }
+        });
+    });
+});
+```
+
+## 7. Enjoy it!
+```sh
+$ node bin/www
+```
+
+## 8. Demo
 [![Build a web socket chatroom via Node.js Express](https://i.ytimg.com/vi/jf75BK-zxac/hqdefault.jpg)](https://youtu.be/jf75BK-zxac "Build a web socket chatroom via Node.js Express")
 
 ## Notice
